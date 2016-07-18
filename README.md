@@ -104,3 +104,21 @@ public int hashCode() {
 31 * i == (i << 5) - i
 
 现代的 VM 可以自行完成这个优化。
+
+## String/StringBuilder/StringBuffer
+
+String是不可变类型的。
+StringBuilder是线程不安全的可变类型。
+StringBuffer是线程安全的可变类型。
+
+在使用StringBuilder和StringBuffer的时候是有陷阱的，如果在append("a"+"b")这样使用就掉入了陷阱，因为"a+"b"会生成新的字符串。
+
+## try catch finally，try里有return，finally还执行么？
+
+会执行，在方法 返回调用者前执行。Java允许在finally中改变返回值的做法是不好的，因为如果存在finally代码块，try中的return语句不会立马返回调用者，而是记录下返回值，待finally代码块执行完毕之后再向调用者返回其值，然后如果在finally中修改了返回值，这会对程序造成很大的困扰。
+
+## Excption与Error区别
+
+Error表示系统级的错误和程序不必处理的异常，是恢复不是不可能但很困难的情况下的一种严重问题；比如内存溢出，不可能指望程序能处理这样的状况；Exception表示需要捕捉或者需要程序进行处理的异常，是一种设计或实现问题；也就是说，它表示如果程序运行正常，从不会发生的情况。
+
+

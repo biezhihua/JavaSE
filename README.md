@@ -137,6 +137,9 @@ http://ifeve.com/concurrenthashmap/
 但是当位于一个桶中的元素较多，即hash值相等的元素较多时，通过key值依次查找的效率较低。
 而JDK1.8中，HashMap采用Node数组+链表+红黑树实现，当链表长度超过阈值（8）时，将链表转换为红黑树，这样大大减少了查找时间。
 
+## HashMap工作原理及实现
+
+
 ## String/StringBuilder/StringBuffer
 
 String是不可变类型的。

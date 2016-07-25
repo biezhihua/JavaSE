@@ -1,0 +1,37 @@
+
+0. 基础概念
+
+- 基本概念解释
+
+- 结论
+
+1. 测量 布局
+
+- LayoutManager.mAutoMeasure RecyclerView的measure及layout过程是否要委托给RecyclerView.LayoutManager
+
+如果需要委托给LayoutManager，那么就在RecyclerView.onMeasure()中测量孩子的大小，从而最终再确定RecyclerView的大小。
+如果不需要委托给LayoutManager，那么RecycylerView.onMeasure()中就仅仅完成自身的默认测量工作（遵从父布局的意愿），
+
+- dispatchLayoutStep1() 
+	1. 处理适配器更新
+	2. 决定动画是否运行
+	3. 保存当前view的信息
+	4. 如果需要运行预布局和保存预布局信息
+
+- dispatchLayoutStep2() 该步骤就是我们最终view的测量结果
+
+- LinearLayout.onLayoutChildren() 确定布局锚点，以此为起点向开始和结束方向填充ItemView
+
+- LinearLayout.fill() 填充
+
+
+
+3. 绘制
+
+4. 滑动
+
+5. 动画
+
+6. Recycler
+
+7. 数据更新

@@ -150,19 +150,84 @@ StringBuffer是线程安全的可变类型。
 
 Error表示系统级的错误和程序不必处理的异常，是恢复不是不可能但很困难的情况下的一种严重问题；比如内存溢出，不可能指望程序能处理这样的状况；Exception表示需要捕捉或者需要程序进行处理的异常，是一种设计或实现问题；也就是说，它表示如果程序运行正常，从不会发生的情况。
 
-## JVM区域划分
-JVM所管理的内存分为以下几个运行时数据区：程序计数器、Java虚拟机栈、本地方法栈、Java堆、方法区。
+## 集合
 
-Java堆:
-Java Heap是Java虚拟机所管理的内存中最大的一块，它是所有线程共享的一块内存区域。几乎所有的对象实例和数组都在这类分配内存。Java Heap是垃圾收集器管理的主要区域，因此很多时候也被称为“GC堆”。
+Java集合工具包位于Java.util包下，包含了很多常用的数据结构，如数组、链表、栈、队列、集合、哈希表等。
 
-方法区:
-是各个线程共享的内存区域，它用于存储已经被虚拟机加载的类信息、常量、静态变量、即时编译器编译后的代码等数据。方法区域又被称为“永久代”.
+学习Java集合框架下大致可以分为如下五个部分：List列表、Set集合、Map映射、迭代器（Iterator、Enumeration）、工具类（Arrays、Collections）。
 
-Java堆中各代分部 yong(年轻代)  old(老年代) permanent(方法区):
-1. Young：主要是用来存放新生的对象。
-2. Old：主要存放应用程序中生命周期长的内存对象。
-3. Permanent：是指内存的永久保存区域，主要存放Class和Meta的信息,Class在被 Load的时候被放入PermGen space区域. 它和和存放Instance的Heap区域不同,GC(Garbage Collection)不会在主程序运行期对PermGen space进行清理，所以如果你的APP会LOAD很多CLASS的话,就很可能出现PermGen space错误。
+Collection是List、Set等集合高度抽象出来的接口，它包含了这些集合的基本操作，它主要又分为两大部分：List和Set。
+
+List接口通常表示一个列表（数组、队列、链表、栈等），其中的元素可以重复，常用实现类为ArrayList和LinkedList，另外还有不常用的Vector。另外，LinkedList还是实现了Deque(Deque继承自Queue)接口，因此也可以作为队列使用。
+
+Set接口通常表示一个集合，其中的元素不允许重复（通过hashcode和equals函数保证），常用实现类有HashSet和TreeSet，HashSet是通过Map中的HashMap实现的，而TreeSet是通过Map中的TreeMap实现的。另外，TreeSet还实现了SortedSet接口，因此是有序的集合（集合中的元素要实现Comparable接口，并覆写Compartor函数才行）。
+
+可以看到，抽象类AbstractCollection、AbstractList和AbstractSet分别实现了Collection、List和Set接口，这就是在Java集合框架中用的很多的模板（而非适配器）设计模式，用这些抽象类去实现接口，在抽象类中实现接口中的若干或全部方法，这样下面的一些类只需直接继承该抽象类，并实现自己需要的方法即可，而不用实现接口中的全部抽象方法。
+
+Map是一个映射接口，其中的每个元素都是一个key-value键值对，同样抽象类AbstractMap通过模板模式实现了Map接口中的大部分函数，TreeMap、HashMap、WeakHashMap等实现类都通过继承AbstractMap来实现，另外，不常用的HashTable继承自Dictionary并直接实现了Map接口，此外它还是线程安全的（简单粗暴的使用synchronized，所以效率较低），它和Vector都是JDK1.0就引入的集合类。
+
+Iterator是遍历集合的迭代器（不能遍历Map，只用来遍历Collection），Collection的实现类都实现了iterator()函数，它返回一个Iterator对象，用来遍历集合，ListIterator则专门用来遍历List。而Enumeration则是JDK1.0时引入的，作用与Iterator相同，但它的功能比Iterator要少，它只能再Hashtable、Vector和Stack中使用。
+
+Arrays和Collections是用来操作数组、集合的两个工具类，例如在ArrayList和Vector中大量调用了Arrays.Copyof()方法，而Collections中有很多静态方法可以返回各集合类的synchronized版本，即线程安全的版本，当然了，如果要用线程安全的结合类，首选Concurrent并发包下的对应的集合类。
+
+## HashMap
+
+http://yikun.github.io/2015/04/01/Java-HashMap%E5%B7%A5%E4%BD%9C%E5%8E%9F%E7%90%86%E5%8F%8A%E5%AE%9E%E7%8E%B0/
+
+1. 什么时候会使用HashMap？他有什么特点？
+
+是基于Map接口的实现，存储键值对时，它可以接收null的键值，是非同步的，HashMap存储着Entry(hash, key, value, next)对象。
+
+2. 你知道HashMap的工作原理吗？
+
+通过hash的方法，通过put和get存储和获取对象。存储对象时，我们将K/V传给put方法时，它调用hashCode计算hash从而得到bucket位置，进一步存储，HashMap会根据当前bucket的占用情况自动调整容量(超过Load Facotr则resize为原来的2倍)。获取对象时，我们将K传给get，它调用hashCode计算hash从而得到bucket位置，并进一步调用equals()方法确定键值对。如果发生碰撞的时候，Hashmap通过链表将产生碰撞冲突的元素组织起来，在Java 8中，如果一个bucket中碰撞冲突的元素超过某个限制(默认是8)，则使用红黑树来替换链表，从而提高速度。
+
+3. 你知道get和put的原理吗？equals()和hashCode()的都有什么作用？
+
+通过对key的hashCode()进行hashing，并计算下标( n-1 & hash)，从而获得buckets的位置。如果产生碰撞，则利用key.equals()方法去链表或树中去查找对应的节点
+
+4. 你知道hash的实现吗？为什么要这样实现？
+
+在Java 1.8的实现中，是通过hashCode()的高16位异或低16位实现的：(h = k.hashCode()) ^ (h >>> 16)，主要是从速度、功效、质量来考虑的，这么做可以在bucket的n比较小的时候，也能保证考虑到高低bit都参与到hash的计算中，同时不会有太大的开销。
+
+5. 如果HashMap的大小超过了负载因子(load factor)定义的容量，怎么办？
+
+如果超过了负载因子(默认0.75)，则会重新resize一个原来长度两倍的HashMap，并且重新调用hash方法。
+
+## ConcurrentHashMap
+
+在以前的版本貌似ConcurrentHashMap引入了一个“分段锁”的概念，具体可以理解为把一个大的Map拆分成N个小的HashTable，根据key.hashCode()来决定把key放到哪个HashTable中。在ConcurrentHashMap中，就是把Map分成了N个Segment，put和get的时候，都是现根据key.hashCode()算出放到哪个Segment中。
+通过把整个Map分为N个Segment（类似HashTable），可以提供相同的线程安全，但是效率提升N倍。
+
+## LinkList
+
+1. LinkedList是基于双向链表（从源码中可以很容易看出）实现的，除了可以当做链表来操作外，它还可以当做栈、队列和双端队列来使用。
+2. LinkedList同样是非线程安全的，只在单线程下适合使用。
+3. 以双向链表实现。链表无容量限制，但双向链表本身使用了更多空间，也需要额外的链表指针操作。
+4. 按下标访问元素—get(i)/set(i,e) 要悲剧的遍历链表将指针移动到位(如果i>数组大小的一半，会从末尾移起)。
+5. 插入、删除元素时修改前后节点的指针即可，但还是要遍历部分链表的指针才能移动到下标所指的位置，只有在链表两头的操作—add(), addFirst(),removeLast()或用iterator()上的remove()能省掉指针的移动。
+
+## ArrayList
+
+1. 以数组实现。节约空间，但数组有容量限制。超出限制时会增加50%容量，用System.arraycopy()复制到新的数组，因此最好能给出数组大小的预估值。默认第一次插入元素时创建大小为10的数组。
+2. 按数组下标访问元素—get(i)/set(i,e) 的性能很高，这是数组的基本优势。
+3. 直接在数组末尾加入元素—add(e)的性能也高，但如果按下标插入、删除元素—add(i,e), remove(i), remove(e)，则要用System.arraycopy()来移动部分受影响的元素，性能就变差了，这是基本劣势。
+
+## CopyOnWriteArrayList
+
+并发优化的ArrayList。用CopyOnWrite策略，在修改时先复制一个快照来修改，改完再让内部指针指向新数组。
+因为对快照的修改对读操作来说不可见，所以只有写锁没有读锁，加上复制的昂贵成本，典型的适合读多写少的场景。如果更新频率较高，或数组较大时，还是Collections.synchronizedList(list)，对所有操作用同一把锁来保证线程安全更好。
+增加了addIfAbsent(e)方法，会遍历数组来检查元素是否已存在，性能可想像的不会太好。
+
+CopyOnWriteArrayList中,写入将导致创建整体底层数组的副本,而源数组将保留在原地,使得复制的数组在被修改时,读取操作可以安全的执行. 当修改完成时,一个原子性的操作将把新的数组换入,使得新读取的操作可以看到这个新的修改.
+CopyOnWriteArrayList的好处之一就是当多个迭代器同时遍历和修改这个列表时,不会抛出异常.
+CopyOnWriteArraySet内部使用CopyOnWriteArrayList来实现其免锁行为. "使用了类似的基数,允许并发的读取和写入,但是容器中只有部分内容而不是整个容器可以被复制和修改.
+然而,在任何修改完成之前,读取者仍然看不到他们.
+
+## ArrayBlockQueue
+
+是一个由数组支持的有界阻塞队列。此队列按 FIFO（先进先出）原则对元素进行排序。队列的头部 是在队列中存在时间最长的元素。队列的尾部 是在队列中存在时间最短的元素。新元素插入到队列的尾部，队列获取操作则是从队列头部开始获得元素。 这是一个典型的“有界缓存区”，固定大小的数组在其中保持生产者插入的元素和使用者提取的元素。一旦创建了这样的缓存区，就不能再增加其容量。试图向已满队列中放入元素会导致操作受阻塞；试图从空队列中提取元素将导致类似阻塞。 此类支持对等待的生产者线程和消费者线程进行排序的可选公平策略。默认情况下，不保证是这种排序。然而，通过将公平性 (fairness) 设置为 true 而构造的队列允许按照 FIFO 顺序访问线程。公平性通常会降低吞吐量，但也减少了可变性和避免了“不平衡性”。
+
 
 ##  双亲委派模型：Bootstrap ClassLoader、Extension ClassLoader、ApplicationClassLoader。
 
@@ -189,64 +254,127 @@ CG:
 必须先把所有存活的对象从旧堆复制到新堆，这将导致大量的复制行为．
 3. Java虚拟机会进行监视，如果所有对象都很稳定，垃圾回收期的效率低的话，会切换到标记－清扫方式，根据效果，要是堆空间出现很多碎片，就会切换到停止－复制．
 
-# 集合
+## JVM区域划分
+JVM所管理的内存分为以下几个运行时数据区：程序计数器、Java虚拟机栈、本地方法栈、Java堆、方法区。
 
-Java集合工具包位于Java.util包下，包含了很多常用的数据结构，如数组、链表、栈、队列、集合、哈希表等。
+Java堆:
+Java Heap是Java虚拟机所管理的内存中最大的一块，它是所有线程共享的一块内存区域。几乎所有的对象实例和数组都在这类分配内存。Java Heap是垃圾收集器管理的主要区域，因此很多时候也被称为“GC堆”。
 
-学习Java集合框架下大致可以分为如下五个部分：List列表、Set集合、Map映射、迭代器（Iterator、Enumeration）、工具类（Arrays、Collections）。
+方法区:
+是各个线程共享的内存区域，它用于存储已经被虚拟机加载的类信息、常量、静态变量、即时编译器编译后的代码等数据。方法区域又被称为“永久代”.
 
-Collection是List、Set等集合高度抽象出来的接口，它包含了这些集合的基本操作，它主要又分为两大部分：List和Set。
+Java堆中各代分部 yong(年轻代)  old(老年代) permanent(方法区):
+1. Young：主要是用来存放新生的对象。
+2. Old：主要存放应用程序中生命周期长的内存对象。
+3. Permanent：是指内存的永久保存区域，主要存放Class和Meta的信息,Class在被 Load的时候被放入PermGen space区域. 它和和存放Instance的Heap区域不同,GC(Garbage Collection)不会在主程序运行期对PermGen space进行清理，所以如果你的APP会LOAD很多CLASS的话,就很可能出现PermGen space错误。
 
-List接口通常表示一个列表（数组、队列、链表、栈等），其中的元素可以重复，常用实现类为ArrayList和LinkedList，另外还有不常用的Vector。另外，LinkedList还是实现了Deque(Deque继承自Queue)接口，因此也可以作为队列使用。
+## CountDownLatch
 
-Set接口通常表示一个集合，其中的元素不允许重复（通过hashcode和equals函数保证），常用实现类有HashSet和TreeSet，HashSet是通过Map中的HashMap实现的，而TreeSet是通过Map中的TreeMap实现的。另外，TreeSet还实现了SortedSet接口，因此是有序的集合（集合中的元素要实现Comparable接口，并覆写Compartor函数才行）。
+它被用来同步一个或者多个任务,强制他们等待由其他任务执行的一组操作完成.
 
-可以看到，抽象类AbstractCollection、AbstractList和AbstractSet分别实现了Collection、List和Set接口，这就是在Java集合框架中用的很多的模板（而非适配器）设计模式，用这些抽象类去实现接口，在抽象类中实现接口中的若干或全部方法，这样下面的一些类只需直接继承该抽象类，并实现自己需要的方法即可，而不用实现接口中的全部抽象方法。
+可以像CountDownLatch对象设置一个初始计数值,任何在这个对象上调用wait()的方法都会将阻塞,直至这个计数值达到0. 其他任务在结束其工作任务时,可以在该对象上调用countDown()来减小这个计数值.
 
-Map是一个映射接口，其中的每个元素都是一个key-value键值对，同样抽象类AbstractMap通过模板模式实现了Map接口中的大部分函数，TreeMap、HashMap、WeakHashMap等实现类都通过继承AbstractMap来实现，另外，不常用的HashTable继承自Dictionary并直接实现了Map接口，此外它还是线程安全的（简单粗暴的使用synchronized，所以效率较低），它和Vector都是JDK1.0就引入的集合类。
+CountDownLatch被设计为只触发一次,计数值不能被重置.如果你需要能够重置计数值的版本,则可以使用CyclicBarrier
 
-Iterator是遍历集合的迭代器（不能遍历Map，只用来遍历Collection），Collection的实现类都实现了iterator()函数，它返回一个Iterator对象，用来遍历集合，ListIterator则专门用来遍历List。而Enumeration则是JDK1.0时引入的，作用与Iterator相同，但它的功能比Iterator要少，它只能再Hashtable、Vector和Stack中使用。
+## CyclicBarrier
 
-Arrays和Collections是用来操作数组、集合的两个工具类，例如在ArrayList和Vector中大量调用了Arrays.Copyof()方法，而Collections中有很多静态方法可以返回各集合类的synchronized版本，即线程安全的版本，当然了，如果要用线程安全的结合类，首选Concurrent并发包下的对应的集合类。
+希望创建一组任务,他们并行地执行工作,然后在进行下一步骤之前等待,直至所有的任务都完成.这使得所有的并行任务 都将在栅栏处列队,因此可以一致的向前移动.
 
-## HashMap
+## DelayQueue
 
-1. 什么时候会使用HashMap？他有什么特点？
-是基于Map接口的实现，存储键值对时，它可以接收null的键值，是非同步的，HashMap存储着Entry(hash, key, value, next)对象。
-2. 你知道HashMap的工作原理吗？
-通过hash的方法，通过put和get存储和获取对象。存储对象时，我们将K/V传给put方法时，它调用hashCode计算hash从而得到bucket位置，进一步存储，HashMap会根据当前bucket的占用情况自动调整容量(超过Load Facotr则resize为原来的2倍)。获取对象时，我们将K传给get，它调用hashCode计算hash从而得到bucket位置，并进一步调用equals()方法确定键值对。如果发生碰撞的时候，Hashmap通过链表将产生碰撞冲突的元素组织起来，在Java 8中，如果一个bucket中碰撞冲突的元素超过某个限制(默认是8)，则使用红黑树来替换链表，从而提高速度。
-3. 你知道get和put的原理吗？equals()和hashCode()的都有什么作用？
-通过对key的hashCode()进行hashing，并计算下标( n-1 & hash)，从而获得buckets的位置。如果产生碰撞，则利用key.equals()方法去链表或树中去查找对应的节点
-4. 你知道hash的实现吗？为什么要这样实现？
-在Java 1.8的实现中，是通过hashCode()的高16位异或低16位实现的：(h = k.hashCode()) ^ (h >>> 16)，主要是从速度、功效、质量来考虑的，这么做可以在bucket的n比较小的时候，也能保证考虑到高低bit都参与到hash的计算中，同时不会有太大的开销。
-5. 如果HashMap的大小超过了负载因子(load factor)定义的容量，怎么办？
-如果超过了负载因子(默认0.75)，则会重新resize一个原来长度两倍的HashMap，并且重新调用hash方法。
+无界的BLockingQueue,用于放置实现了Delayed接口的对象,其中的对象指正在其到期时才能从队列中走出. 这种队列是有序的,即队头对象的延迟到期的时间最长.如果没有任何延迟到期,那么就不会由任何头元素,并且poll会null
 
-## JavA ConcurrentHashMap
+## PriorityBlockingQueue
 
-在以前的版本貌似ConcurrentHashMap引入了一个“分段锁”的概念，具体可以理解为把一个大的Map拆分成N个小的HashTable，根据key.hashCode()来决定把key放到哪个HashTable中。在ConcurrentHashMap中，就是把Map分成了N个Segment，put和get的时候，都是现根据key.hashCode()算出放到哪个Segment中。
+优先级队列,他具有可阻塞的读取操作.
 
-通过把整个Map分为N个Segment（类似HashTable），可以提供相同的线程安全，但是效率提升N倍。
+## 死锁
+   
+某个任务在等待另一个任务,而后者又在等待别的任务,这样一直下去,直到这样链条上的任务 又在等待第一个任务释放锁.这得到了一个任务之间相互等待的联系循环,没有那个线程能够继续,称之为死锁.
 
-## Java LinkList
+当以下四个条件同时满足时,就会发生死锁:
 
-LinkedList是基于双向链表（从源码中可以很容易看出）实现的，除了可以当做链表来操作外，它还可以当做栈、队列和双端队列来使用。
+互斥条件.任务使用的资源中至少有一个是不能共享的.
+至少有一个任务它必须持有一个资源且正在等待获取一个当前被别的任务持有的资源.
+资源不能被任务抢占,任务必须把资源释放当做普通事件.
+必须有循环等待,这时,一个任务等待其他任务所持有的资源,后者又在等待另一个任务持有的资源,直到有一个任务在等待第一个任务所持有的资源, 使得大家都被锁住.
+因为要发生死锁的化,所有这些条件必须全部满足;所以要防止死锁的话,只需破坏其中一个即可.
 
-LinkedList同样是非线程安全的，只在单线程下适合使用。
+## 中断
+   
+Thread.interrupt()用于终止被阻塞的任务.
+Thread.interrupted()提供了离开run()循环而不抛出异常的第二种方式.
+Executor.submit()可以获取一个Future任务的上下文,可以调用cancel()方法取消任务.其内部是通过interrupt()以停止这个线程的.
+可以中断对sleep()的调用,或者是任何要求抛出InterruptedException的调用.但是,不能中断正在试图获取synchronized锁或者是试图执行I/O操作的线程.
 
-以双向链表实现。链表无容量限制，但双向链表本身使用了更多空间，也需要额外的链表指针操作。
+## 在阻塞时终结
 
-按下标访问元素—get(i)/set(i,e) 要悲剧的遍历链表将指针移动到位(如果i>数组大小的一半，会从末尾移起)。
+线程状态,一个线程可以处于以下四种状态:
+1. 新建(new):当线程被创建时,它只会短暂的处于这种状态.此时它已经分配了必须的系统资源,并执行了初始化.此刻线程已经有资格获得CPU时间了,之后调度器将把这个线程 转变位可运行状态或阻塞状态.
+2. 就绪(runnable):在这种状态下,只要调度器把时间片分配给线程,线程就可以运行.也就是说,在任意时刻,线程可以运行也可以不运行.只要调度器能分配时间片给线程,他就可以运行 这不同于死亡和阻塞状态.
+3. 阻塞(Blocked):线程能够运行,但有个条件阻止它的运行.当线程处于阻塞状态时,调度器将忽略线程,不会分配时间片给线程任何CPU时间.知道线程重新进入了就绪状态,他才有可能执行操作.
+4. 死亡(Dead):处于死亡或终止状态的线程不在是可调度的,并且再也不会得到CPU时间,它的任务已结束,或不在是可运行的.任务死亡的方式通常是从run()方法返回,但是任务的 还可以被中断.
 
-插入、删除元素时修改前后节点的指针即可，但还是要遍历部分链表的指针才能移动到下标所指的位置，只有在链表两头的操作—add(), addFirst(),removeLast()或用iterator()上的remove()能省掉指针的移动。
+进入阻塞状态,一个线程进入阻塞状态,可能有如下原因:
+1. 通过调用sleep(millseconds)使任务进入休眠状态,在这种状态下,任务在指定的时间内不会运行.
+2. 通过wait()使线程挂起.直到线程得到了notify()或notifyAll()消息,或是signal()和singalAll(),线程才会进入就绪状态.
+3. 任务在等待某个输入/输出完成.
+4. 任务试图在某个对象上调用其同步控制方法,但是对象锁不可用,因为另一个任务已经获取了这个锁.
 
-## Java ArrayList
+## 线程本地存储
+   
+防止任务在共享资源上产生冲突的第二种方式是根除对变量的共享. 线程本地存储是一种自动化机制,可以为使用相同变量的每个不同的线程创建不同的存储. 如果由5个线程都要使用变量x所表示的对象,那线程本地存储就会生成5个用于x的不同存储快.他们可以使得你将状态和线程关联起来.
+   
+创建和管理线程本地存储由ThreadLocal类来实现.
 
-以数组实现。节约空间，但数组有容量限制。超出限制时会增加50%容量，用System.arraycopy()复制到新的数组，因此最好能给出数组大小的预估值。默认第一次插入元素时创建大小为10的数组。
-按数组下标访问元素—get(i)/set(i,e) 的性能很高，这是数组的基本优势。
-直接在数组末尾加入元素—add(e)的性能也高，但如果按下标插入、删除元素—add(i,e), remove(i), remove(e)，则要用System.arraycopy()来移动部分受影响的元素，性能就变差了，这是基本劣势。
+## 原子性与易变性
+   
+原子性可以应用于除long和double之外的所有基本类型智商的"简单操作".对于读取和写入除long和double之外的基本类型变量这样的操作,可以保证他们会被当做不可分的操作来操作内存.6tgc
 
-## Java CopyOnWriteArrayList
-并发优化的ArrayList。用CopyOnWrite策略，在修改时先复制一个快照来修改，改完再让内部指针指向新数组。
-因为对快照的修改对读操作来说不可见，所以只有写锁没有读锁，加上复制的昂贵成本，典型的适合读多写少的场景。如果更新频率较高，或数组较大时，还是Collections.synchronizedList(list)，对所有操作用同一把锁来保证线程安全更好。
-增加了addIfAbsent(e)方法，会遍历数组来检查元素是否已存在，性能可想像的不会太好。
+原子性可以应用于除long和double之外的所有基本类型上的简单操作.
+
+valatile关键是确保了可视性,如果产生了写操作,那么所有的读操作都可以看到这个修改.
+
+什么属于原子操作?对域中的值做赋值和返回操作通常都是原子性的.
+
+在java中 i++; i+=2;不是原子性的.
+
+基本上,如果一个域可能会被多个任务同时访问,或者这些任务至少有一个是写入任务,那么你就应该将这个域设置位volatile的.如果将一个域定义为 volatile,那么它会告诉编译器不要执行任何移除读取和写入操作的优化,这些操作的目的是用线程中的局部变量维护对这个域的精准同步. 实际上,读取和写入都是直接针对内存的,而却没有被缓存.但是,valatile并不能对递增不是原子性操作这一事实产生影响.
+
+## 原子类
+
+AtomicInteger AtomicLong AtomicReference
+
+## 解决共享资源竞争
+
+你永远不知道一个线程何时在运行.
+
+对于并发工作,需要某种方式来防止两个任务访问相同的资源,至少在关键阶段不能出现这种情况.
+
+基本上所有的并发模式在解决线程冲突的问题时,都是采用序列化访问共享资源的方案.
+
+这意味着在给定的时刻只允许一个任务访问共享资源.这通常是在代码前面加上一条锁语句,使得在一段时间内只有一个任务运行这段代码.
+
+因为锁语句产生了一种互相排斥的效果,所以这种机制常常称为互斥量. mutex.
+
+synchronized防止资源冲突提供了内置支持.当要执行的任务被synchronized关键字保护的代码片段时,检查锁是否可用,然后获取锁,执行代码,释放锁.
+
+在使用并发时,将域设置位private是非常重要的,否则,synchronized关键字就不能防止其他任务直接访问域,这样就会产生冲突.
+
+所有对象都自动含有单一的锁(监视器).当在对象上调用任意的synchronized方法时,此对象都被枷锁,这时该对象上的其他synchronized方法只有等到前一个方法调用完毕 并释放了锁之后,其他任务才能调用f()和g().
+
+针对每个类,也有一个锁,作为类Class对象的一部分,所以synchronized static 方法可以在类范围内防止对static数据的并发访问.
+
+什么时候使用同步?
+
+如果你正在写一个变量,他可能接下来被另一个线程读取,或者正在读取上一次已经被另一个线程写过的变量,那么你必须使用同步,并且读写线程都必须使用相同的监视器锁同步.
+
+## 后台 daemon 线程
+
+是指在程序运行的时候在后台提供一种通用服务的线程，并且这种线程并不属于程序中不可或缺的一部分． 当所有非后台线程结束时，程序也就终止了，同时会杀死进程中所有的后台线程．
+
+必须在线程启动之前调用setDaemon()方法，才能把其设置为后台线程．
+
+可以通过isDaemon()来确定线程是否是一个后台线程，如果是一个后台线程，呢么它创建的任何线程都被自动设置成后台线程．
+
+后台线程在不执行finally子句的情况下就会终止其run()方法．因为，当一个非后台线程终止时，后台线程会＂突然＂终止. 因此,一旦main()退出,JVM就会立即关闭所有的后台线程.

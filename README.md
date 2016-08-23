@@ -461,11 +461,11 @@ http://blog.csdn.net/madun/article/details/20313269
 
 ## socket断线重连怎么实现，心跳机制是怎么实现，三次握手和四次挥手步骤
 
-计算机网络图
+http://blog.csdn.net/biezhihua/article/details/52290908
 
 ## Http中TCP和UDP有啥区别。
 
-简单概念的阐述，和具体底层的实现。
+http://blog.csdn.net/biezhihua/article/details/52292267
 
 ## 安全加密有哪些
 
@@ -476,4 +476,3 @@ http://blog.csdn.net/madun/article/details/20313269
 ## Linux进程和线程的区别。
 
 http://blog.csdn.net/forrest2009/article/details/6413756
-

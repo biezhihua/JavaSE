@@ -455,7 +455,6 @@ Generational Collection（分代收集）算法
 
 注意，在堆区之外还有一个代就是永久代（Permanet Generation），它用来存储class类、常量、方法描述等。对永久代的回收主要回收两部分内容：废弃常量和无用的类。
 
-
 ## 多线程中的安全队列一般通过什么实现？线程池原理
 
 http://blog.csdn.net/madun/article/details/20313269
